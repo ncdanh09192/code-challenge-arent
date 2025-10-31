@@ -1,158 +1,161 @@
-.PHONY: help start stop logs test build clean setup install dev
+.PHONY: help start stop test migrate seeds install build dev clean
+
+# Colors for output
+GREEN = \033[0;32m
+YELLOW = \033[0;33m
+BLUE = \033[0;34m
+NC = \033[0m # No Color
 
 # Default target
 help:
-	@echo "Express API Demo - Available Commands"
-	@echo "======================================"
-	@echo "make setup          - Setup project (install deps and create .env)"
-	@echo "make install        - Install dependencies using yarn"
-	@echo "make build          - Build Docker image"
-	@echo "make start          - Start all services (Docker Compose)"
-	@echo "make stop           - Stop all services"
-	@echo "make logs           - View logs from all containers"
-	@echo "make logs-app       - View logs from app container"
-	@echo "make logs-db        - View logs from MySQL container"
-	@echo "make logs-redis     - View logs from Redis container"
-	@echo "make test           - Run tests"
-	@echo "make test-watch     - Run tests in watch mode"
-	@echo "make test-coverage  - Run tests with coverage"
-	@echo "make dev            - Run in development mode (local)"
-	@echo "make clean          - Clean up containers, volumes and node_modules"
-	@echo "make db-migrate     - Run Prisma migrations"
-	@echo "make db-studio      - Open Prisma Studio"
-	@echo "make shell-app      - Access app container shell"
-	@echo "make shell-db       - Access MySQL container shell"
+	@echo "$(BLUE)Health Management Backend API - Available Commands$(NC)"
+	@echo "=================================================="
 	@echo ""
-	@echo "Database Credentials (from .env.example)"
-	@echo "======================================"
-	@echo "MySQL User: appuser"
-	@echo "MySQL Password: apppassword"
-	@echo "MySQL Port: 3307"
+	@echo "$(GREEN)Getting Started:$(NC)"
+	@echo "  make install        - Install dependencies"
+	@echo "  make migrate        - Run Prisma migrations"
+	@echo "  make seeds          - Seed database with demo data"
+	@echo "  make start          - Start dev server (migrate + seed + start) 🚀"
 	@echo ""
-	@echo "Endpoints"
-	@echo "======================================"
-	@echo "App: http://localhost:3003"
-	@echo "API Docs: http://localhost:3003/api-docs"
-
-# Setup project
-setup: install
-	@echo "Setup complete!"
-	@echo "Run 'make start' to start the services"
+	@echo "$(GREEN)Development:$(NC)"
+	@echo "  make dev            - Start dev server (without migrations)"
+	@echo "  make build          - Build for production"
+	@echo "  make test           - Run all tests"
+	@echo "  make test-watch     - Run tests in watch mode"
+	@echo "  make test-cov       - Run tests with coverage"
+	@echo ""
+	@echo "$(GREEN)Database:$(NC)"
+	@echo "  make db-studio      - Open Prisma Studio UI"
+	@echo "  make db-reset       - Reset database (delete all data)"
+	@echo ""
+	@echo "$(GREEN)Docker:$(NC)"
+	@echo "  make docker-up      - Start PostgreSQL container"
+	@echo "  make docker-down    - Stop PostgreSQL container"
+	@echo "  make docker-logs    - View PostgreSQL logs"
+	@echo ""
+	@echo "$(GREEN)Utilities:$(NC)"
+	@echo "  make clean          - Remove node_modules and .env"
+	@echo "  make help           - Show this help message"
+	@echo ""
+	@echo "$(BLUE)Quick Start:$(NC)"
+	@echo "  1. docker-compose up -d          # Start PostgreSQL"
+	@echo "  2. make start                     # Setup & start dev server"
+	@echo "  3. Open http://localhost:3000/api # API Documentation"
+	@echo ""
+	@echo "$(BLUE)Demo Credentials:$(NC)"
+	@echo "  Email: demo@example.com"
+	@echo "  Password: demo123456"
+	@echo ""
 
 # Install dependencies
 install:
-	@echo "Installing dependencies..."
+	@echo "$(YELLOW)Installing dependencies...$(NC)"
 	npm install
+	@echo "$(GREEN)✅ Dependencies installed$(NC)"
 
-# Build Docker image
+# Run Prisma migrations
+migrate:
+	@echo "$(YELLOW)Running Prisma migrations...$(NC)"
+	npx prisma migrate dev
+	@echo "$(GREEN)✅ Migrations completed$(NC)"
+
+# Seed database with demo data
+seeds:
+	@echo "$(YELLOW)Seeding database with demo data...$(NC)"
+	npx prisma db seed
+	@echo "$(GREEN)✅ Database seeded with 35+ days of data$(NC)"
+	@echo "   Users: demo@example.com / admin@example.com"
+	@echo "   Password: demo123456"
+
+# Start development server (with automatic migrate)
+start: migrate seeds
+	@echo ""
+	@echo "$(GREEN)🚀 Starting development server...$(NC)"
+	@echo ""
+	npm run start:dev
+
+# Start development server (without migrations)
+dev:
+	@echo "$(YELLOW)Starting dev server...$(NC)"
+	npm run start:dev
+
+# Build for production
 build:
-	@echo "Building Docker image..."
-	docker-compose build
+	@echo "$(YELLOW)Building for production...$(NC)"
+	npm run build
+	@echo "$(GREEN)✅ Build completed$(NC)"
 
-# Start all services
-start:
-	@echo "Starting services..."
-	@docker-compose up -d
-	@echo ""
-	@echo "✅ Services started!"
-	@echo "App running at: http://localhost:3003"
-	@echo "API Docs: http://localhost:3003/api-docs"
-	@echo ""
-	@echo "Demo login credentials:"
-	@echo "  Email: demo@example.com"
-	@echo "  Password: password"
-	@echo ""
-	@sleep 3
-	@docker-compose logs --tail=20
-
-# Stop all services
-stop:
-	@echo "Stopping services..."
-	@docker-compose down
-	@echo "✅ Services stopped!"
-
-# View all logs
-logs:
-	@docker-compose logs -f
-
-# View app logs
-logs-app:
-	@docker-compose logs -f app
-
-# View database logs
-logs-db:
-	@docker-compose logs -f mysql
-
-# View redis logs
-logs-redis:
-	@docker-compose logs -f redis
-
-# Run tests
+# Run all tests
 test:
-	@echo "Running tests..."
-	@npm test
+	@echo "$(YELLOW)Running tests...$(NC)"
+	npm test
 
 # Run tests in watch mode
 test-watch:
-	@echo "Running tests in watch mode..."
-	@npm run test:watch
+	@echo "$(YELLOW)Running tests in watch mode...$(NC)"
+	npm run test:watch
 
 # Run tests with coverage
-test-coverage:
-	@echo "Running tests with coverage..."
-	@npm run test -- --coverage
+test-cov:
+	@echo "$(YELLOW)Running tests with coverage...$(NC)"
+	npm run test:cov
 
-# Development mode (local, no Docker)
-dev:
-	@echo "Starting development server..."
-	@npm run dev
-
-# Database migration
-db-migrate:
-	@echo "Running Prisma migrations..."
-	@docker-compose exec app npm run prisma:migrate
-
-# Open Prisma Studio
+# Open Prisma Studio UI
 db-studio:
-	@echo "Opening Prisma Studio..."
-	@docker-compose exec app npm run prisma:studio
+	@echo "$(YELLOW)Opening Prisma Studio...$(NC)"
+	npx prisma studio
 
-# Access app container shell
-shell-app:
-	@docker-compose exec app sh
+# Reset database
+db-reset:
+	@echo "$(YELLOW)Resetting database...$(NC)"
+	npx prisma migrate reset --force
+	@echo "$(GREEN)✅ Database reset$(NC)"
 
-# Access MySQL container shell
-shell-db:
-	@docker-compose exec mysql mysql -u root -ppassword express_api_demo
+# Docker PostgreSQL management
+docker-up:
+	@echo "$(YELLOW)Starting PostgreSQL container...$(NC)"
+	docker-compose up -d
+	@echo "$(GREEN)✅ PostgreSQL started on port 5432$(NC)"
+	@sleep 2
+	@docker-compose logs postgres
 
-# Clean up everything
+docker-down:
+	@echo "$(YELLOW)Stopping PostgreSQL container...$(NC)"
+	docker-compose down
+	@echo "$(GREEN)✅ PostgreSQL stopped$(NC)"
+
+docker-logs:
+	@echo "$(YELLOW)PostgreSQL Logs:$(NC)"
+	docker-compose logs -f postgres
+
+# Lint code
+lint:
+	@echo "$(YELLOW)Running ESLint...$(NC)"
+	npm run lint
+
+# Format code
+format:
+	@echo "$(YELLOW)Formatting code...$(NC)"
+	npm run format
+
+# Clean up
 clean:
-	@echo "Cleaning up..."
-	@docker-compose down -v
-	@rm -rf node_modules
-	@rm -rf .env
-	@echo "✅ Cleanup complete!"
+	@echo "$(YELLOW)Cleaning up...$(NC)"
+	rm -rf node_modules
+	rm -f .env
+	@echo "$(GREEN)✅ Cleanup completed$(NC)"
 
-# List containers
-ps:
-	@docker-compose ps
-
-# Restart services
-restart: stop start
-
-# Initialize environment file
-env:
-	@if [ ! -f .env ]; then \
-		cp .env.example .env; \
-		echo "✅ Created .env file from .env.example"; \
-	else \
-		echo ".env file already exists"; \
-	fi
-
-# Show service status
-status:
-	@echo "Service Status:"
-	@docker-compose ps
+# Show current environment info
+info:
+	@echo "$(BLUE)Project Information:$(NC)"
+	@echo "  Framework: NestJS"
+	@echo "  Database: PostgreSQL"
+	@echo "  ORM: Prisma"
+	@echo "  Language: TypeScript"
+	@echo "  Node version: $$(node --version)"
+	@echo "  npm version: $$(npm --version)"
 	@echo ""
-	@echo "Health checks:"
-	@curl -s http://localhost:3003/health | jq . || echo "App not running"
+	@echo "$(BLUE)API Endpoints:$(NC)"
+	@echo "  Local: http://localhost:3000"
+	@echo "  API Docs: http://localhost:3000/api"
+	@echo "  Health Check: http://localhost:3000/health"

@@ -1,366 +1,389 @@
-# Express API Demo
+# Health Management Backend API
 
-A comprehensive Express.js API demonstration project with MySQL database, Redis cache, JWT authentication, Docker Compose setup, and Swagger API documentation.
+A comprehensive health tracking and wellness management API built with NestJS, Prisma, and PostgreSQL. The system enables users to track body measurements, meals, exercises, diary entries, and daily achievement goals.
 
-## 🚀 Features
+## 🎯 Features
 
-- **Express.js** - Modern Node.js web framework
-- **MySQL** - Relational database
-- **Redis** - Caching layer
-- **JWT Authentication** - Secure API endpoints
-- **Prisma ORM** - Database management
-- **Swagger/OpenAPI** - API documentation
-- **Pino** - Lightweight JSON logging
+- **NestJS Framework** - Enterprise-grade Node.js framework with TypeScript
+- **PostgreSQL** - Relational database for data persistence
+- **JWT Authentication** - Secure API endpoints with access/refresh tokens
+- **Prisma ORM** - Type-safe database management
+- **Swagger/OpenAPI** - Auto-generated API documentation
+- **Role-Based Access Control** - Admin and User roles
 - **Docker Compose** - Complete containerized setup
 - **Jest** - Testing framework
-- **Vanilla HTML/CSS/JS** - Demo UI for testing APIs
+- **35+ Days of Demo Data** - Pre-populated database with realistic health data
 
 ## 📋 Prerequisites
 
-- **Node.js** >= 22.0.0
-- **Yarn** >= 4.0.0
-- **Docker & Docker Compose**
+- **Node.js** >= 20.0.0
+- **npm** >= 9.0.0
+- **PostgreSQL** (running via Docker or locally)
+- **Docker & Docker Compose** (optional, for PostgreSQL)
 
 ## ⚡ Quick Start
 
-### Option 1: Using Docker Compose (Recommended)
+### 1. Clone and Install
 
 ```bash
-# Clone and setup
-make setup
-
-# Start all services
-make start
-
-# Access the application
-# - UI: http://localhost:3003
-# - API Docs: http://localhost:3003/api-docs
+git clone <repository-url>
+cd code-challenge-arent
+npm install
 ```
 
-### Option 2: Local Development
+### 2. Setup Environment
 
 ```bash
-# Install dependencies
-yarn install
-
-# Create .env file
 cp .env.example .env
+```
 
-# Start MySQL and Redis containers only
-docker-compose up -d mysql redis
+### 3. Start PostgreSQL
 
-# Run migrations (optional, if database is set up)
-yarn prisma:migrate
+```bash
+# Using Docker Compose
+docker-compose up -d
 
-# Start development server
-yarn dev
+# Or use local PostgreSQL installation
+# Make sure it's running on port 5432
+```
 
-# Access at http://localhost:3003
+### 4. Setup Database
+
+```bash
+# Run migrations
+npm run prisma:migrate
+
+# Seed demo data (35+ days)
+npm run prisma:seed
+```
+
+### 5. Start Application
+
+```bash
+# Development mode (with hot reload)
+npm run start:dev
+
+# Production mode
+npm run build
+npm start
+```
+
+The API will be available at `http://localhost:3000`
+Swagger docs at `http://localhost:3000/api`
+
+## 🔐 Demo Credentials
+
+After seeding, use these credentials:
+
+**Regular User**
+```
+Email: demo@example.com
+Password: demo123456
+```
+
+**Admin User**
+```
+Email: admin@example.com
+Password: demo123456
 ```
 
 ## 📚 Available Commands
 
-### Service Management
-
 ```bash
-make start          # Start all containers
-make stop           # Stop all containers
-make restart        # Restart all containers
-make logs           # View all container logs
-make logs-app       # View app container logs
-make logs-db        # View MySQL logs
-make logs-redis     # View Redis logs
-make ps             # List running containers
-make status         # Show service status
+# Development
+npm run start:dev          # Start with hot reload
+npm run start:debug        # Start with debugging
+
+# Building & Production
+npm run build              # Build for production
+npm start                  # Start production server
+
+# Database
+npm run prisma:migrate     # Create/run migrations
+npm run prisma:seed        # Populate database with demo data
+npm run prisma:studio      # Open Prisma Studio UI
+npm run db:reset           # Reset database
+
+# Testing
+npm test                   # Run all tests
+npm run test:watch         # Run tests in watch mode
+npm run test:cov           # Run tests with coverage
+
+# Code Quality
+npm run lint               # Run ESLint
+npm run format             # Format code with Prettier
 ```
 
-### Development
+## 📡 API Endpoints Overview
 
-```bash
-make dev            # Run local development server
-make install        # Install dependencies
-make build          # Build Docker images
-make clean          # Remove containers and volumes
-```
+### Authentication (`/auth`)
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - Login (returns tokens)
+- `POST /auth/refresh` - Refresh access token
+- `GET /auth/me` - Get current user (protected)
 
-### Testing & Debugging
+### Body Records (`/body-records`)
+- `POST /body-records` - Create record (protected)
+- `GET /body-records` - Get all records (protected)
+- `GET /body-records/latest` - Get latest record (protected)
+- `GET /body-records/trend` - Get 6-month trend (protected)
+- `GET /body-records/stats` - Get statistics (protected)
+- `GET /body-records/:id` - Get by ID (protected)
+- `PUT /body-records/:id` - Update (protected)
+- `DELETE /body-records/:id` - Delete (protected)
 
-```bash
-make test           # Run test suite
-make test-watch     # Run tests in watch mode
-make test-coverage  # Run tests with coverage report
-make db-studio      # Open Prisma Studio
-make shell-app      # Access app container shell
-make shell-db       # Access MySQL container shell
-```
+### Meals (`/meals`)
+- `GET /meals/presets` - Get all presets (public)
+- `GET /meals/presets/categories` - Get categories (public)
+- `POST /meals/user` - Log meal (protected)
+- `GET /meals/user` - Get meals (protected)
+- `GET /meals/user/date/:date` - Get by date (protected)
+- `GET /meals/user/stats/:date` - Get daily stats (protected)
+- `PUT/DELETE /meals/user/:id` - Update/delete (protected)
 
-## 🔐 Authentication
+### Exercises (`/exercises`)
+- `GET /exercises/presets` - Get all presets (public)
+- `POST /exercises/user` - Log exercise (protected)
+- `GET /exercises/user` - Get exercises (protected)
+- `GET /exercises/user/date/:date` - Get by date (protected)
+- `GET /exercises/user/stats/:date` - Get daily stats (protected)
+- `PUT/DELETE /exercises/user/:id` - Update/delete (protected)
 
-### Default Test Account
+### Diary (`/diary`)
+- `POST /diary/entries` - Create entry (protected)
+- `GET /diary/entries` - Get entries (protected)
+- `GET /diary/entries/date/:date` - Get by date (protected)
+- `GET /diary/goals/date/:date` - Get daily goal (protected)
+- `GET /diary/achievement/date/:date` - Get achievement rate (protected)
+- `GET /diary/achievement/stats` - Get achievement stats (protected)
+- `PUT/DELETE /diary/entries/:id` - Update/delete (protected)
 
-```
-Email: demo@example.com
-Password: password
-```
-
-### JWT Flow
-
-1. **Login** - POST `/api/auth/login` with email and password
-2. **Get Token** - Response includes JWT token
-3. **Use Token** - Include in `Authorization: Bearer <token>` header
-4. **Verify** - POST `/api/auth/verify` to validate token
-
-## 📡 API Endpoints
-
-### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/verify` - Verify JWT token
-
-### Posts (Protected)
-- `GET /api/posts` - Get all posts (cached in Redis)
-- `GET /api/posts/:id` - Get post by ID
-- `POST /api/posts` - Create post (requires auth)
-- `PUT /api/posts/:id` - Update post (requires auth)
-- `DELETE /api/posts/:id` - Delete post (requires auth)
-
-### System
-- `GET /health` - Health check
-- `GET /api-docs` - Swagger API documentation
-
-## 🗄️ Database Schema
-
-### User Table
-```sql
-- id (Primary Key)
-- email (Unique)
-- username (Unique)
-- password
-- firstName
-- lastName
-- createdAt
-- updatedAt
-```
-
-### Post Table
-```sql
-- id (Primary Key)
-- title
-- content
-- published (Boolean)
-- createdAt
-- updatedAt
-```
+### Columns (`/columns`)
+- `GET /columns` - Get published columns (public)
+- `GET /columns/categories` - Get categories (public)
+- `GET /columns/category/:categoryId` - Get by category (public)
+- `GET /columns/:id` - Get details (public, increments views)
+- `POST /columns` - Create (admin only)
+- `PUT/DELETE /columns/:id` - Update/delete (admin only)
 
 ## 📦 Environment Variables
 
 Create `.env` file from `.env.example`:
 
 ```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/health_app_db
+
+# JWT Configuration
+JWT_SECRET=your-secret-key-here
+JWT_REFRESH_SECRET=your-refresh-secret-key
+
+# Application
 NODE_ENV=development
-APP_PORT=3003
-DATABASE_URL=mysql://appuser:apppassword@mysql:3307/express_api_demo
-REDIS_URL=redis://redis:6380
-JWT_SECRET=your-secret-key-change-this-in-production
-JWT_EXPIRATION=7d
-SWAGGER_ENABLED=true
-LOG_LEVEL=debug
+PORT=3000
 ```
 
 ## 🐳 Docker Compose Services
 
-### MySQL Database
-- **Container**: express-api-mysql
-- **Port**: 3307
-- **User**: appuser
-- **Password**: apppassword
-- **Database**: express_api_demo
-
-### Redis Cache
-- **Container**: express-api-redis
-- **Port**: 6380
-- **Persistence**: Enabled with AOF
-
-### Express App
-- **Container**: express-api-app
-- **Port**: 3003
-- **Volume**: Current directory (live reload)
+### PostgreSQL Database
+- **Container**: health-postgres
+- **Port**: 5432
+- **User**: postgres (default)
+- **Password**: postgres (default)
+- **Database**: health_app_db
+- **Volumes**: postgres-data (persistent)
 
 ## 📝 Project Structure
 
 ```
+src/
+├── auth/                      # Authentication module
+│   ├── auth.service.ts
+│   ├── auth.controller.ts
+│   ├── strategies/
+│   │   └── jwt.strategy.ts
+│   ├── dtos/
+│   │   ├── register.dto.ts
+│   │   └── login.dto.ts
+│   └── auth.module.ts
+
+├── body-records/              # Body measurements tracking
+│   ├── body-records.service.ts
+│   ├── body-records.controller.ts
+│   ├── dtos/
+│   │   └── create-body-record.dto.ts
+│   └── body-records.module.ts
+
+├── meals/                     # Meal tracking
+│   ├── meals.service.ts
+│   ├── meals.controller.ts
+│   ├── dtos/
+│   │   └── create-user-meal.dto.ts
+│   └── meals.module.ts
+
+├── exercises/                 # Exercise tracking
+│   ├── exercises.service.ts
+│   ├── exercises.controller.ts
+│   ├── dtos/
+│   │   └── create-user-exercise.dto.ts
+│   └── exercises.module.ts
+
+├── diary/                     # Diary & Daily Goals
+│   ├── diary.service.ts
+│   ├── diary.controller.ts
+│   ├── dtos/
+│   │   └── create-diary-entry.dto.ts
+│   └── diary.module.ts
+
+├── columns/                   # Health Articles/Blog
+│   ├── columns.service.ts
+│   ├── columns.controller.ts
+│   ├── dtos/
+│   │   ├── create-column.dto.ts
+│   │   └── update-column.dto.ts
+│   └── columns.module.ts
+
+├── common/                    # Shared utilities
+│   ├── guards/
+│   │   ├── jwt-auth.guard.ts
+│   │   └── roles.guard.ts
+│   └── decorators/
+│       ├── roles.decorator.ts
+│       └── current-user.decorator.ts
+
+├── app.controller.ts          # Root controller
+├── app.service.ts
+├── app.module.ts              # Root module
+├── main.ts                    # Application entry point
+└── prisma.service.ts          # Prisma client management
+
+prisma/
+├── schema.prisma              # Database schema (11 models)
+└── seed.ts                    # Database seeding script
+
+tests/                         # Test files
+
 .
-├── docker/
-│   └── Dockerfile              # App container configuration
-├── prisma/
-│   └── schema.prisma           # Database schema
-├── public/
-│   └── index.html              # Demo UI
-├── src/
-│   ├── config/
-│   │   ├── index.js            # Configuration
-│   │   ├── logger.js           # Pino logger setup
-│   │   ├── prisma.js           # Prisma client
-│   │   ├── redis.js            # Redis client
-│   │   └── swagger.js          # Swagger configuration
-│   ├── middleware/
-│   │   ├── auth.js             # JWT authentication
-│   │   └── errorHandler.js     # Error handling
-│   ├── routes/
-│   │   ├── auth.js             # Authentication routes
-│   │   └── posts.js            # Posts routes
-│   └── server.js               # Main server file
-├── tests/
-│   ├── auth.test.js            # Authentication tests
-│   └── health.test.js          # Health check tests
-├── .env.example                # Environment variables template
-├── docker-compose.yml          # Docker Compose configuration
-├── jest.config.js              # Jest configuration
-├── Makefile                    # Make commands
-├── package.json                # Project dependencies
-└── README.md                   # This file
+├── docker-compose.yml         # PostgreSQL configuration
+├── .env.example               # Environment variables template
+├── package.json               # Dependencies
+├── tsconfig.json              # TypeScript configuration
+└── README.md                  # This file
 ```
+
+## 🔄 Achievement Rate Calculation
+
+The system automatically calculates daily achievement rates with this formula:
+
+```
+Achievement Rate (%) = (meals_logged + exercises_logged + diary_written) /
+                       (target_meals + target_exercises + target_diary) * 100
+
+Example:
+- Logged today: 3 meals + 1 exercise + 1 diary = 5 completed
+- Daily targets: 3 meals + 1 exercise + 1 diary = 5 targets
+- Achievement Rate = (5 ÷ 5) × 100 = 100%
+```
+
+When users create meals, exercises, or diary entries, the system automatically updates the `DailyGoal` record with current counts and recalculates the achievement rate.
 
 ## 🧪 Testing
 
-### Run Tests
-
 ```bash
 # Run all tests
-make test
+npm test
 
-# Run tests in watch mode
-make test-watch
+# Watch mode (re-run on file changes)
+npm run test:watch
 
-# Run tests with coverage report
-make test-coverage
+# Coverage report
+npm run test:cov
 ```
-
-### Test Coverage
-
-Tests are located in the `tests/` directory and cover:
-- Authentication endpoints
-- Health checks
-- 404 error handling
-- Token verification
-
-## 🔍 Logging
-
-The application uses **Pino** for lightweight JSON logging. Configure with `LOG_LEVEL` environment variable:
-
-- `fatal` - Fatal errors
-- `error` - Errors
-- `warn` - Warnings
-- `info` - Information
-- `debug` - Debug information
-- `trace` - Detailed trace
 
 ## 🛡️ Security Features
 
-- **Helmet.js** - HTTP security headers
-- **CORS** - Cross-Origin Resource Sharing
-- **JWT** - JSON Web Token authentication
-- **Password hashing ready** - Use bcrypt in production
-- **Input validation** - Request validation
-- **Error handling** - Secure error messages
+- **JWT Authentication** - Secure token-based auth with access/refresh pattern
+- **Password Hashing** - bcrypt with 10 rounds salt
+- **Role-Based Access Control** - Admin vs User roles with guards
+- **Ownership Verification** - Users can only access their own data
+- **Input Validation** - class-validator decorators on all DTOs
+- **Error Handling** - Secure error responses without sensitive info
+- **CORS** - Cross-Origin Resource Sharing configuration
 
 ## 🚀 Performance Features
 
-- **Redis caching** - Cache posts and reduce database queries
-- **Connection pooling** - Prisma handles connection pooling
-- **Async/await** - Non-blocking operations
-- **Compression ready** - Easy to add gzip compression
-- **Rate limiting ready** - Easy to add request rate limiting
+- **Pagination** - Automatic pagination on list endpoints
+- **Pagination** - Skip/take parameters for efficient data loading
+- **Sorting** - Date-based sorting on time-series data
+- **Connection Pooling** - Prisma handles database connection pooling
+- **Async/Await** - Non-blocking async operations
+- **Database Indexes** - Strategic indexes on userId, date, published fields
+- **Cascade Deletes** - Efficient cleanup on user deletion
 
-## 📊 Monitoring
+## 📊 Seed Data
 
-### Health Check
+The seed script populates the database with realistic demo data:
 
-```bash
-curl http://localhost:3003/health
-```
+- **2 Users**: 1 regular user + 1 admin (both with password: demo123456)
+- **11 Meal Presets**: Breakfast, Lunch, Dinner, and Snack options
+- **7 Exercise Presets**: Running, Cycling, Swimming, Weights, Yoga, HIIT, Walking
+- **4 Column Categories**: Health Tips, Diet Advice, Exercise Guide, Wellness
+- **3 Sample Articles**: Published for public viewing
+- **35 Days of Data**: Realistic health tracking across all categories
 
-### View Logs
-
-```bash
-# All services
-make logs
-
-# Specific service
-make logs-app
-make logs-db
-make logs-redis
-```
-
-### Check Service Status
-
-```bash
-make status
-```
-
-## 🔧 Development Workflow
-
-1. **Start services**
-   ```bash
-   make start
-   ```
-
-2. **Make changes** - Files are live-reloaded in Docker
-
-3. **Check logs**
-   ```bash
-   make logs-app
-   ```
-
-4. **Run tests**
-   ```bash
-   make test
-   ```
-
-5. **Stop when done**
-   ```bash
-   make stop
-   ```
+Run with: `npm run prisma:seed`
 
 ## 🐛 Troubleshooting
 
 ### Port Already in Use
 ```bash
-# Check what's using the port
-lsof -i :3003
+# Check what's using port 3000
+lsof -i :3000
 
-# Or use different ports in docker-compose.yml
+# Or use a different port via environment variable
+PORT=3001 npm run start:dev
 ```
 
 ### Database Connection Failed
 ```bash
-# Check MySQL is running
-docker-compose logs mysql
+# Check PostgreSQL is running
+docker-compose ps
 
-# Verify database credentials in .env
+# View logs
+docker-compose logs postgres
+
+# Verify DATABASE_URL in .env
 ```
 
-### Redis Connection Failed
+### Migration Issues
 ```bash
-# Check Redis is running
-docker-compose logs redis
+# Reset database to clean state
+npm run db:reset
 
-# Verify Redis URL in .env
+# Or manually reset and reseed
+docker-compose down -v
+docker-compose up -d
+npm run prisma:migrate
+npm run prisma:seed
 ```
 
 ### Tests Failing
 ```bash
-# Make sure you're in the project directory
-# Clear cache and reinstall
-make clean
-make setup
-make test
+# Clear npm cache
+npm cache clean --force
+
+# Reinstall dependencies
+npm install
+
+# Run tests again
+npm test
 ```
 
 ## 📚 Learn More
 
-- [Express.js Documentation](https://expressjs.com/)
+- [NestJS Documentation](https://docs.nestjs.com/)
 - [Prisma Documentation](https://www.prisma.io/docs/)
-- [Redis Documentation](https://redis.io/docs/)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [JWT Introduction](https://jwt.io/introduction)
 - [Swagger/OpenAPI](https://swagger.io/)
 
@@ -370,8 +393,8 @@ MIT
 
 ## 🤝 Contributing
 
-Feel free to submit issues and enhancement requests!
+Contributions are welcome! Please feel free to submit pull requests or open issues.
 
 ---
 
-**Happy coding!** 🎉
+**Built with ❤️ using NestJS | Prisma | PostgreSQL | TypeScript**

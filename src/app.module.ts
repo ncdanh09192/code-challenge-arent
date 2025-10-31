@@ -8,6 +8,7 @@ import { BodyRecordsModule } from './body-records/body-records.module';
 import { MealsModule } from './meals/meals.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { DiaryModule } from './diary/diary.module';
+import { ColumnsModule } from './columns/columns.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DiaryModule } from './diary/diary.module';
     MealsModule,
     ExercisesModule,
     DiaryModule,
+    ColumnsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
