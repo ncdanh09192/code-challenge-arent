@@ -1,72 +1,49 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  # MySQL Database
-  mysql:
-    image: mysql:8.0
-    container_name: express-api-mysql
+  postgres:
+    image: postgres:15-alpine
+    container_name: health_app_postgres
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: express_api_demo
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppassword
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: health_app_db
     ports:
-      - "3307:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
-    networks:
-      - express-network
-
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: express-api-redis
-    ports:
-      - "6380:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      timeout: 3s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
       retries: 5
     networks:
-      - express-network
+      - health_network
 
-  # Express App
   app:
     build:
       context: .
-      dockerfile: docker/Dockerfile
-    container_name: express-api-app
+      dockerfile: Dockerfile
+    container_name: health_app_nestjs
     environment:
       NODE_ENV: development
-      DATABASE_URL: mysql://appuser:apppassword@mysql:3306/express_api_demo
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this}
-      APP_PORT: 3003
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/health_app_db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
     ports:
-      - "3003:3003"
+      - "3000:3000"
     depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
+      postgres:
         condition: service_healthy
     volumes:
       - .:/app
       - /app/node_modules
     networks:
-      - express-network
-    command: npm run dev
+      - health_network
+    command: npm run start:dev
 
 volumes:
-  mysql_data:
-  redis_data:
+  db_data:
 
 networks:
-  express-network:
+  health_network:
     driver: bridge

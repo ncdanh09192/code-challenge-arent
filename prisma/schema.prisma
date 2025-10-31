@@ -6,30 +6,198 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// ============= User Management =============
 model User {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique
-  username  String  @unique
-  password  String
-  firstName String?
-  lastName  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  password      String // bcrypt hashed
+  firstName     String?
+  lastName      String?
+  role          String    @default("user") // user | admin
+  avatar_url    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  bodyRecords   BodyRecord[]
+  userMeals     UserMeal[]
+  userExercises UserExercise[]
+  diaryEntries  DiaryEntry[]
+  dailyGoals    DailyGoal[]
+  columns       Column[]
 
   @@map("users")
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
+// ============= Body Records (Weight & Body Fat) =============
+model BodyRecord {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weight            Float // kg
+  bodyFatPercentage Float?
+  date              DateTime @db.Date
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@map("body_records")
+}
+
+// ============= Meal Tracking =============
+model MealCategory {
+  id          String       @id @default(cuid())
+  name        String       @unique // Morning, Lunch, Dinner, Snack
+  icon_url    String?
+  mealPresets MealPreset[]
+
+  @@map("meal_categories")
+}
+
+model MealPreset {
+  id          String       @id @default(cuid())
+  name        String
+  categoryId  String
+  category    MealCategory @relation(fields: [categoryId], references: [id])
+  calories    Int
+  description String?
+  image_url   String?
+  createdAt   DateTime     @default(now())
+
+  userMeals UserMeal[]
+
+  @@index([categoryId])
+  @@map("meal_presets")
+}
+
+model UserMeal {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealPresetId String?
+  mealPreset  MealPreset? @relation(fields: [mealPresetId], references: [id])
+  customName  String? // for custom meals
+  date        DateTime   @db.Date
+  time        String? // HH:mm format
+  calories    Int
+  image_url   String? // custom meal image
+  servings    Float      @default(1)
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@map("user_meals")
+}
+
+// ============= Exercise Tracking =============
+model ExercisePreset {
+  id                String         @id @default(cuid())
+  name              String
+  description       String?
+  calories_per_unit Int // per 10 minutes
+  icon_url          String?
+  createdAt         DateTime       @default(now())
+
+  userExercises UserExercise[]
+
+  @@map("exercise_presets")
+}
+
+model UserExercise {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercisePresetId String?
+  exercisePreset  ExercisePreset? @relation(fields: [exercisePresetId], references: [id])
+  customName      String? // for custom exercises
+  date            DateTime        @db.Date
+  time            String? // HH:mm format
+  duration        Int // minutes
+  calories_burned Int // calculated
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@map("user_exercises")
+}
+
+// ============= Diary Entries =============
+model DiaryEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
-  content   String  @db.Text
-  published Boolean @default(false)
+  content   String   @db.Text
+  mood      String? // happy, neutral, sad, excited
+  image_url String?
+  date      DateTime @db.Date
+  time      String? // HH:mm format
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("posts")
+  @@index([userId])
+  @@index([date])
+  @@map("diary_entries")
+}
+
+// ============= Daily Goals & Achievement =============
+model DailyGoal {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date             DateTime @db.Date
+  target_meals     Int      @default(3)
+  target_exercises Int      @default(1)
+  target_diary     Int      @default(1)
+  meals_logged     Int      @default(0)
+  exercises_logged Int      @default(0)
+  diary_written    Int      @default(0)
+  achievement_rate Float    @default(0) // calculated percentage
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("daily_goals")
+}
+
+// ============= Health Columns/Blog =============
+model ColumnCategory {
+  id            String   @id @default(cuid())
+  name          String   @unique // Column, Diet, Beauty, Health
+  display_order Int
+
+  columns Column[]
+
+  @@map("column_categories")
+}
+
+model Column {
+  id        String         @id @default(cuid())
+  adminId   String
+  admin     User           @relation(fields: [adminId], references: [id])
+  title     String
+  content   String         @db.Text
+  categoryId String
+  category  ColumnCategory @relation(fields: [categoryId], references: [id])
+  image_url String?
+  published Boolean        @default(false)
+  view_count Int           @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([adminId])
+  @@index([categoryId])
+  @@index([published])
+  @@map("columns")
 }
