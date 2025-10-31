@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { BodyRecordsModule } from './body-records/body-records.module';
 import { MealsModule } from './meals/meals.module';
 import { ExercisesModule } from './exercises/exercises.module';
+import { DiaryModule } from './diary/diary.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ExercisesModule } from './exercises/exercises.module';
     BodyRecordsModule,
     MealsModule,
     ExercisesModule,
+    DiaryModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
