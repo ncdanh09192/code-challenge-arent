@@ -6,6 +6,7 @@ import { PrismaService } from './prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { BodyRecordsModule } from './body-records/body-records.module';
 import { MealsModule } from './meals/meals.module';
+import { ExercisesModule } from './exercises/exercises.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MealsModule } from './meals/meals.module';
     AuthModule,
     BodyRecordsModule,
     MealsModule,
+    ExercisesModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
