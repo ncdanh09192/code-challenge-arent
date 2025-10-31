@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { BodyRecordsModule } from './body-records/body-records.module';
+import { MealsModule } from './meals/meals.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { BodyRecordsModule } from './body-records/body-records.module';
     }),
     AuthModule,
     BodyRecordsModule,
+    MealsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
