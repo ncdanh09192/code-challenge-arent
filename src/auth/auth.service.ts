@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma.service';
 import { ROLES } from '../common/constants/roles';
@@ -41,6 +42,14 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
+  /**
+   * Register a new user with email, username, and password
+   * Validates that email/username are not already in use, hashes the password,
+   * and generates JWT access/refresh tokens for immediate login
+   * @param registerDto - User registration details (email, username, password, firstName, lastName)
+   * @returns User profile (without password) and JWT tokens
+   * @throws BadRequestException if email or username already exists
+   */
   async register(registerDto: RegisterDto) {
     const { email, username, password, firstName, lastName } = registerDto;
 
@@ -55,10 +64,10 @@ export class AuthService {
       throw new BadRequestException('Email or username already exists');
     }
 
-    // Hash password
+    // Hash password with bcrypt (10 salt rounds for security)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user in database
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -70,7 +79,7 @@ export class AuthService {
       },
     });
 
-    // Generate tokens
+    // Generate JWT tokens for immediate authentication
     const tokens = this.generateTokens({
       sub: user.id,
       email: user.email,
@@ -86,6 +95,13 @@ export class AuthService {
     };
   }
 
+  /**
+   * Authenticate user with email and password
+   * Verifies credentials and returns JWT tokens if valid
+   * @param loginDto - Login credentials (email, password)
+   * @returns User profile (without password) and JWT tokens
+   * @throws UnauthorizedException if email not found or password is incorrect
+   */
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
@@ -98,14 +114,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Verify password
+    // Verify password against bcrypt hash
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Generate tokens
+    // Generate JWT tokens for authenticated session
     const tokens = this.generateTokens({
       sub: user.id,
       email: user.email,
@@ -140,6 +156,13 @@ export class AuthService {
     return tokens;
   }
 
+  /**
+   * Generate access and refresh JWT tokens for user authentication
+   * Access token expires in 1 day (configurable via JWT_EXPIRATION)
+   * Refresh token expires in 7 days (configurable via JWT_REFRESH_EXPIRATION)
+   * @param payload - Token payload containing user ID, email, username, and role
+   * @returns Object with accessToken and refreshToken
+   */
   private generateTokens(payload: TokenPayload) {
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.get('JWT_EXPIRATION', '1d'),
@@ -155,7 +178,13 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private formatUser(user: any): UserWithoutPassword {
+  /**
+   * Format user object by removing sensitive information (password)
+   * Used to return safe user data to client
+   * @param user - User object from database (includes password field)
+   * @returns User object without password field
+   */
+  private formatUser(user: User): UserWithoutPassword {
     const { password, ...rest } = user;
     return rest as UserWithoutPassword;
   }

@@ -130,7 +130,7 @@ export class DiaryService {
 
     return {
       date,
-      achievementRate,
+      achievement_rate: achievementRate,
       completed: {
         meals: goal.meals_logged,
         exercises: goal.exercises_logged,

@@ -23,6 +23,93 @@ A comprehensive health tracking and wellness management API built with NestJS, P
   - On macOS/Linux: usually pre-installed
   - On Windows: install via WSL or Git Bash
 
+## 🏗️ System Architecture
+
+### Three-Tier Architecture
+
+The Health Management API follows a classic three-tier architecture pattern:
+
+```
+┌─────────────────────────────────────────┐
+│  HTTP Clients (Web, Mobile, Swagger UI) │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Controllers Layer (HTTP Routing)       │
+│  ├─ AuthController                      │
+│  ├─ MealsController                     │
+│  ├─ ExercisesController                 │
+│  ├─ BodyRecordsController               │
+│  ├─ DiaryController                     │
+│  └─ ColumnsController                   │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Business Logic Layer (Services)        │
+│  ├─ AuthService       (Auth & Tokens)   │
+│  ├─ MealsService      (Meal tracking)   │
+│  ├─ ExercisesService  (Exercise logs)   │
+│  ├─ BodyRecordsService(Measurements)    │
+│  ├─ DiaryService      (Entries & Goals) │
+│  └─ ColumnsService    (Article mgmt)    │
+└─────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────┐
+│  Data Access Layer (Prisma ORM)         │
+│  └─ PostgreSQL Database                 │
+└─────────────────────────────────────────┘
+```
+
+### Module Interaction Flow
+
+**User Registration & Login:**
+```
+POST /auth/register → AuthController → AuthService → hash password + create user → return JWT tokens
+POST /auth/login    → AuthController → AuthService → verify password + generate tokens → return JWT tokens
+```
+
+**Health Tracking (Protected Endpoints):**
+```
+POST /meals/user           → JwtAuthGuard → CurrentUser → MealsService → validate preset → create meal
+GET  /meals/user           → JwtAuthGuard → CurrentUser → MealsService → paginate + filter → return meals
+GET  /meals/user/date/:date → JwtAuthGuard + ParseDatePipe → filter by date → return meals for date
+```
+
+**Achievement Rate Calculation:**
+When a user creates a meal, exercise, or diary entry, the system automatically:
+1. Logs the entry in the respective table (user_meals, user_exercises, diary_entries)
+2. Updates the daily_goals record for that date with current counts:
+   - Increment `meals_logged`, `exercises_logged`, or `diary_written`
+3. Recalculates achievement rate: `(logged_items ÷ target_items) × 100`
+4. Updates `achievement_rate` field in daily_goals table
+
+**Example:** User logs a meal at 8 AM
+- Service creates UserMeal entry → finds/creates DailyGoal for today → increments meals_logged → recalculates achievement_rate
+
+### Key Components
+
+**Guards & Security:**
+- `JwtAuthGuard` - Validates JWT token on protected routes
+- `RolesGuard` - Enforces role-based access (admin-only endpoints)
+- `CurrentUser` decorator - Extracts user ID from JWT payload
+
+**Custom Pipes:**
+- `ParseDatePipe` - Validates date format (YYYY-MM-DD) on date parameters
+- `ParseIntPipe` - Built-in pagination (skip/take) validation
+
+**Data Validation:**
+- DTOs with `class-validator` decorators on all endpoints
+- Whitelist enabled - only known fields accepted
+- Automatic transformation of types (strings to numbers, dates)
+
+### Database Schema
+
+See **Diagrams.png** for the complete database schema showing all 11 models and their relationships:
+- **Core Models:** users, user_meals, user_exercises, diary_entries, body_records, daily_goals
+- **Lookup Tables:** meal_presets, meal_categories, exercise_presets, columns, column_categories
+
+---
+
 ## ⚡ Quick Start
 
 ### 1. Verify Docker Installation
@@ -45,16 +132,26 @@ If Docker is not installed, download it from [docker.com](https://www.docker.com
 make start
 ```
 
-The application will be available at: **http://localhost:3003/api-docs*
+The application will be available at: **http://localhost:3003/api-docs**
 
-### 3. Login with Demo Credentials
+### 3. Access the API Documentation
+
+Open **http://localhost:3003/api-docs** in your browser to view the interactive Swagger UI where you can:
+- Test all API endpoints
+- View request/response schemas
+- See authentication requirements
+- Try endpoints with test data
+
+### 4. Login with Demo Credentials
 
 ```
 Email:    demo@example.com
 Password: demo123456
 ```
 
-### 4. Stop When Done
+Use these credentials in the Swagger UI to test protected endpoints.
+
+### 5. Stop When Done
 
 ```bash
 make stop
@@ -169,7 +266,7 @@ JWT_REFRESH_SECRET=your-refresh-secret-key
 
 # Application
 NODE_ENV=development
-PORT=3000
+APP_PORT=3003
 ```
 
 ## 🐳 Docker Compose Services
@@ -279,14 +376,14 @@ When users create meals, exercises, or diary entries, the system automatically u
 ## 🧪 Testing
 
 ```bash
-# Run all tests
-npm test
+# Run all tests inside Docker container
+make test
 
 # Watch mode (re-run on file changes)
-npm run test:watch
+make test-watch
 
-# Coverage report
-npm run test:cov
+# View test logs
+make logs
 ```
 
 ## 🛡️ Security Features
@@ -301,8 +398,7 @@ npm run test:cov
 
 ## 🚀 Performance Features
 
-- **Pagination** - Automatic pagination on list endpoints
-- **Pagination** - Skip/take parameters for efficient data loading
+- **Pagination** - Skip/take parameters for efficient data loading on list endpoints
 - **Sorting** - Date-based sorting on time-series data
 - **Connection Pooling** - Prisma handles database connection pooling
 - **Async/Await** - Non-blocking async operations
@@ -320,7 +416,7 @@ The seed script populates the database with realistic demo data:
 - **3 Sample Articles**: Published for public viewing
 - **35 Days of Data**: Realistic health tracking across all categories
 
-Run with: `npm run prisma:seed`
+Run with: `make seed`
 
 ## 🐛 Troubleshooting
 
@@ -350,25 +446,26 @@ docker-compose logs postgres
 ### Migration Issues
 ```bash
 # Reset database to clean state
-npm run db:reset
+make db-reset
 
-# Or manually reset and reseed
+# Or manually reset the database
+make stop
 docker-compose down -v
-docker-compose up -d
-npm run prisma:migrate
-npm run prisma:seed
+make start
 ```
 
 ### Tests Failing
 ```bash
-# Clear npm cache
-npm cache clean --force
-
-# Reinstall dependencies
-npm install
-
 # Run tests again
-npm test
+make test
+
+# Check test logs
+make logs
+
+# Or clean everything and restart
+make clean
+make start
+make test
 ```
 
 ## 📚 Learn More
