@@ -15,6 +15,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiBody,
 } from '@nestjs/swagger';
 import { AuthService, UserWithoutPassword } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
@@ -66,6 +67,10 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User login' })
+  @ApiBody({
+    description: 'Login credentials (pre-filled with demo account)',
+    type: LoginDto,
+  })
   @ApiResponse({
     status: 200,
     description: 'Login successful',
@@ -73,8 +78,8 @@ export class AuthController {
       example: {
         user: {
           id: 'clx123',
-          email: 'john@example.com',
-          username: 'johndoe',
+          email: 'demo@example.com',
+          username: 'demouser',
           role: 'user',
         },
         accessToken: 'eyJhbGc...',

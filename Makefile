@@ -61,8 +61,8 @@ start: check-docker stop
 	@echo "$(BLUE)║  Health Management Backend API - Starting Services            ║$(NC)"
 	@echo "$(BLUE)╚═══════════════════════════════════════════════════════════════╝$(NC)"
 	@echo ""
-	@echo "$(BLUE)[1/4] Removing old containers and volumes...$(NC)"
-	@docker-compose down -v 2>/dev/null || true
+	@echo "$(BLUE)[1/4] Removing old containers...$(NC)"
+	@docker-compose down 2>/dev/null || true
 	@docker volume rm code-challenge-arent_app_node_modules 2>/dev/null || true
 	@sleep 1
 	@echo "$(GREEN)✅ Old containers and volumes removed$(NC)"
