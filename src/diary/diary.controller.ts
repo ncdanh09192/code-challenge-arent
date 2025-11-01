@@ -10,6 +10,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { DiaryService } from './diary.service';
 import { CreateDiaryEntryDto } from './dtos/create-diary-entry.dto';
+import { UpdateDiaryEntryDto } from './dtos/update-diary-entry.dto';
 
 @ApiTags('diary')
 @Controller('diary')
@@ -45,10 +47,10 @@ export class DiaryController {
   @ApiResponse({ status: 200, description: 'List of diary entries' })
   async findAll(
     @CurrentUser('id') userId: string,
-    @Query('skip') skip: number = 0,
-    @Query('take') take: number = 30,
+    @Query('skip', new ParseIntPipe({ optional: true })) skip?: number,
+    @Query('take', new ParseIntPipe({ optional: true })) take?: number,
   ) {
-    return this.diaryService.findAll(userId, skip, take);
+    return this.diaryService.findAll(userId, skip || 0, take || 30);
   }
 
   @Get('entries/date/:date')
@@ -77,7 +79,7 @@ export class DiaryController {
   async update(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
-    @Body() updateDto: CreateDiaryEntryDto,
+    @Body() updateDto: UpdateDiaryEntryDto,
   ) {
     return this.diaryService.update(id, userId, updateDto);
   }
@@ -123,8 +125,8 @@ export class DiaryController {
   })
   async getAchievementStats(
     @CurrentUser('id') userId: string,
-    @Query('days') days: number = 30,
+    @Query('days', new ParseIntPipe({ optional: true })) days?: number,
   ) {
-    return this.diaryService.getAchievementRangeStats(userId, days);
+    return this.diaryService.getAchievementRangeStats(userId, days || 30);
   }
 }

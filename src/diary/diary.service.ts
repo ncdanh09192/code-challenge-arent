@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateDiaryEntryDto } from './dtos/create-diary-entry.dto';
+import { UpdateDiaryEntryDto } from './dtos/update-diary-entry.dto';
 
 @Injectable()
 export class DiaryService {
@@ -65,7 +66,7 @@ export class DiaryService {
     return entry;
   }
 
-  async update(id: string, userId: string, updateDto: CreateDiaryEntryDto) {
+  async update(id: string, userId: string, updateDto: UpdateDiaryEntryDto) {
     const entry = await this.findOne(id, userId);
 
     return this.prisma.diaryEntry.update({
@@ -160,23 +161,29 @@ export class DiaryService {
     const totalCompleted = goals.reduce((sum, goal) => {
       const completed = goal.meals_logged + goal.exercises_logged + goal.diary_written;
       const targets = goal.target_meals + goal.target_exercises + goal.target_diary;
-      return sum + (completed / targets * 100);
+      const rate = targets > 0 ? (completed / targets) * 100 : 0;
+      return sum + rate;
     }, 0);
 
     const averageRate = totalDays > 0 ? Math.round(totalCompleted / totalDays) : 0;
 
-    return {
-      days,
-      averageAchievementRate: averageRate,
-      bestDay: goals.reduce((best, current) => {
+    let bestDay = null;
+    if (goals.length > 0) {
+      bestDay = goals.reduce((best, current) => {
         const bestCompleted = best.meals_logged + best.exercises_logged + best.diary_written;
         const currentCompleted = current.meals_logged + current.exercises_logged + current.diary_written;
         const bestTargets = best.target_meals + best.target_exercises + best.target_diary;
         const currentTargets = current.target_meals + current.target_exercises + current.target_diary;
-        const bestRate = bestCompleted / bestTargets * 100;
-        const currentRate = currentCompleted / currentTargets * 100;
+        const bestRate = bestTargets > 0 ? (bestCompleted / bestTargets) * 100 : 0;
+        const currentRate = currentTargets > 0 ? (currentCompleted / currentTargets) * 100 : 0;
         return currentRate > bestRate ? current : best;
-      }),
+      });
+    }
+
+    return {
+      days,
+      averageAchievementRate: averageRate,
+      bestDay,
       totalGoals: totalDays,
     };
   }

@@ -1,311 +1,358 @@
-# 🚀 Quick Start Guide
+# 🚀 Quick Start Guide - Health Management Backend API
 
-## Setup Completed! ✅
+## ✅ Prerequisites
 
-Your project is fully configured with all essential components.
+Before starting, make sure you have:
 
-## 📋 Configuration Details
+1. **Docker & Docker Compose** installed
+   ```bash
+   make check-docker
+   ```
+   If not installed, download from: https://www.docker.com/products/docker-desktop
 
-### Database
-- **Type**: MySQL 8.0
-- **Port**: 3307
-- **Database**: express_api_demo
-- **User**: appuser
-- **Password**: apppassword
+2. **Make** command available (pre-installed on macOS/Linux)
 
-### Cache
-- **Type**: Redis 7
-- **Port**: 6380
+---
 
-### App Server
-- **Framework**: Express.js
-- **Port**: 3003
-- **Node.js**: v22+
+## 🎯 Get Started in 3 Steps
 
-## 🎯 Main Commands
+### Step 1️⃣: Verify Docker Installation
 
-### 1️⃣ Start the entire project
+```bash
+make check-docker
+```
+
+**Expected output:**
+```
+✅ Docker is installed and ready
+   Docker version: Docker version 28.3.3, build 980b856
+   Docker Compose version: Docker Compose version v2.39.2
+```
+
+If you get an error, install Docker from https://www.docker.com/products/docker-desktop
+
+---
+
+### Step 2️⃣: Start the Application
 
 ```bash
 make start
 ```
 
-**Result:**
-- MySQL container will run
-- Redis container will run
-- Express app will run on `http://localhost:3003`
+**This will (~30-35 seconds):**
+- ✅ Build Docker image & start containers (~20s)
+- ✅ Install dependencies (npm install) - cached after first run
+- ✅ Run database migrations (~2s)
+- ✅ Start development server (~15s)
 
-### 2️⃣ Stop the project
+**Expected final output:**
+```
+╔═══════════════════════════════════════════════════════════════╗
+║  ✅ Application is ready!                                     ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📌 API Documentation:
+   http://localhost:3003/api-docs
+
+📌 Health Check:
+   http://localhost:3003/health
+
+Demo Credentials:
+  📧 Email:    demo@example.com
+  🔐 Password: demo123456
+
+Admin Account:
+  📧 Email:    admin@example.com
+  🔐 Password: demo123456
+
+To seed database with demo data:
+  make seed          # Seed 35+ days of demo data
+```
+
+---
+
+### Step 3️⃣: (Optional) Seed Demo Data
+
+If you want to add 35+ days of demo health tracking data to your database:
+
+```bash
+make seed
+```
+
+This will populate the database with realistic health data including meals, exercises, body measurements, and diary entries. This step is optional and takes about 8 seconds.
+
+---
+
+### Step 4️⃣: Access the Application
+
+**API Swagger UI:** http://localhost:3003/api-docs
+- Click "Authorize" button
+- Use demo credentials to login
+- Test any endpoint
+
+**Health Check:** http://localhost:3003/health
+- Returns: `{"status":"ok"}`
+
+---
+
+## 🔑 Demo Credentials
+
+**Regular User:**
+```
+Email:    demo@example.com
+Password: demo123456
+```
+
+**Admin User:**
+```
+Email:    admin@example.com
+Password: demo123456
+```
+
+---
+
+## 📦 Essential Commands
+
+### ⏹️ Stop the Application
 
 ```bash
 make stop
 ```
 
-### 3️⃣ View logs from services
+Stops and removes all containers.
+
+---
+
+### 🧪 Run Integration Tests
 
 ```bash
-# View all logs
-make logs
-
-# View app logs only
-make logs-app
-
-# View database logs
-make logs-db
-
-# View redis logs
-make logs-redis
-```
-
-### 4️⃣ Run tests
-
-```bash
-# Run all tests
 make test
-
-# Run tests with coverage report
-make test-coverage
-
-# Run tests in watch mode
-make test-watch
 ```
 
-### 5️⃣ Development mode (local, without Docker)
+Runs all tests **inside the container** (no Node.js needed on your machine).
+
+**Expected output:**
+```
+Tests: 37 passed, 7 failed (84% pass rate)
+Time: ~10 seconds
+```
+
+---
+
+### 📊 View Application Logs
 
 ```bash
-# First, start MySQL & Redis in Docker
-docker-compose up -d mysql redis
-
-# Then run app locally
-make dev
+make logs
 ```
 
-## 🔐 Demo Account
+Shows real-time logs from the NestJS application.
 
-Use this account to test login on the UI:
+---
 
-```
-Email: demo@example.com
-Password: password
-```
+### 🔄 Run Database Migrations
 
-## 🌐 URLs
-
-- **UI/API Test**: http://localhost:3003
-- **API Documentation (Swagger)**: http://localhost:3003/api-docs
-- **Health Check**: http://localhost:3003/health
-
-## 📡 API Endpoints
-
-### Authentication (No token required)
-- `POST /api/auth/login` - User login
-- `POST /api/auth/verify` - Verify JWT token
-
-### Posts (JWT token required)
-- `GET /api/posts` - Get all posts (with Redis caching)
-- `GET /api/posts/:id` - Get post by ID
-- `POST /api/posts` - Create new post (requires auth)
-- `PUT /api/posts/:id` - Update post (requires auth)
-- `DELETE /api/posts/:id` - Delete post (requires auth)
-
-## 📁 Important File Structure
-
-```
-project/
-├── src/
-│   ├── server.js           # Entry point
-│   ├── config/
-│   │   ├── logger.js       # Pino logging setup
-│   │   ├── prisma.js       # Database client
-│   │   ├── redis.js        # Redis client
-│   │   └── swagger.js      # API documentation
-│   ├── middleware/
-│   │   ├── auth.js         # JWT authentication middleware
-│   │   └── errorHandler.js # Global error handling
-│   └── routes/
-│       ├── auth.js         # Authentication endpoints
-│       └── posts.js        # Posts endpoints
-├── public/
-│   └── index.html          # Demo UI
-├── prisma/
-│   └── schema.prisma       # Database schema
-├── docker-compose.yml      # Docker services configuration
-├── Makefile                # Make commands
-└── .env                    # Environment variables
+```bash
+make migrate
 ```
 
-## 🔧 Adding New Middleware / Routes
+Applies any new database schema changes.
 
-### Add New Route
+---
 
-1. Create file `src/routes/yourroute.js`:
+### 🌱 Reseed Database
 
-```javascript
-import express from 'express';
-import { authMiddleware } from '../middleware/auth.js';
-import { asyncHandler } from '../middleware/errorHandler.js';
-
-const router = express.Router();
-
-/**
- * @swagger
- * /api/yourroute:
- *   get:
- *     summary: Your endpoint description
- *     tags:
- *       - YourRoute
- */
-router.get('/', asyncHandler(async (req, res) => {
-  res.json({ success: true, data: [] });
-}));
-
-export default router;
+```bash
+make seed
 ```
 
-2. Import in `src/server.js`:
+Re-populates database with demo data.
 
-```javascript
-import yourRoutes from './routes/yourroute.js';
-app.use('/api/yourroute', yourRoutes);
+---
+
+### 🗑️ Clean Up Everything
+
+```bash
+make clean
 ```
 
-### Add Database Model
+Removes containers, images, and volumes. Good for fresh restart.
 
-1. Edit `prisma/schema.prisma`:
+---
 
-```prisma
-model YourModel {
-  id    Int     @id @default(autoincrement())
-  name  String
-  createdAt DateTime @default(now())
-  @@map("your_models")
+## 🔑 Important Information
+
+### Port Configuration
+- **Application Port:** 3003
+- **Database Port:** 5432
+- **API Documentation:** http://localhost:3003/api-docs
+
+### Database Details
+- **Type:** PostgreSQL 15
+- **Database:** health_app_db
+- **User:** postgres
+- **Password:** postgres
+- **Host:** postgres (internal container network)
+
+### Tech Stack
+- **Framework:** NestJS (TypeScript)
+- **ORM:** Prisma
+- **Database:** PostgreSQL
+- **API Docs:** Swagger/OpenAPI
+- **Tests:** Jest + Supertest
+- **Containerization:** Docker & Docker Compose
+
+---
+
+## 📡 API Quick Examples
+
+### 1. Login and Get Token
+
+```bash
+curl -X POST http://localhost:3003/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "demo@example.com",
+    "password": "demo123456"
+  }'
+```
+
+**Response:**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": "uuid...",
+    "email": "demo@example.com",
+    "name": "Demo User"
+  }
 }
 ```
 
-2. Run migration:
+### 2. Get Current User (Protected)
 
 ```bash
-make db-migrate
+TOKEN="your-access-token-here"
+
+curl -X GET http://localhost:3003/auth/me \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
-## 🧪 Testing API
-
-### Method 1: Use UI (Vanilla JS)
-- Visit http://localhost:3003
-- Login with demo account
-- Test API endpoints directly from UI
-
-### Method 2: Using cURL
+### 3. Get User Body Records (Protected)
 
 ```bash
-# Login
-curl -X POST http://localhost:3003/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"demo@example.com","password":"password"}'
+TOKEN="your-access-token-here"
 
-# Get token from response
-TOKEN="your-token-here"
-
-# Create post (requires auth)
-curl -X POST http://localhost:3003/api/posts \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"title":"Test","content":"Content","published":true}'
+curl -X GET "http://localhost:3003/body-records?skip=0&take=10" \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
-### Method 3: Swagger UI
-- Visit http://localhost:3003/api-docs
-- Test APIs directly from the interface
+### 4. Use Swagger UI (Easiest)
 
-## 🐛 Debugging
+Simply visit: http://localhost:3003/api
+- Click "Authorize" button
+- Enter token from login response
+- Click on any endpoint and click "Try it out"
 
-### View realtime logs
-```bash
-make logs-app
-```
+---
 
-### Access app container shell
-```bash
-make shell-app
-```
+## 🐛 Troubleshooting
 
-### Access MySQL container
-```bash
-make shell-db
-```
-
-### Open Prisma Studio (GUI to browse database)
-```bash
-make db-studio
-```
-
-## 📊 Monitoring
+### Port 3000 Already in Use
 
 ```bash
-# Check status of all services
-make status
+# Option 1: Stop the service using port 3000
+lsof -i :3000
+kill -9 <PID>
 
-# List running containers
-make ps
-
-# Restart services
-make restart
-```
-
-## 🛠️ Troubleshooting
-
-### Port already in use
-
-```bash
-# Find which process is using the port
-lsof -i :3003
-
-# Or use different ports in docker-compose.yml
-```
-
-### Database connection error
-
-```bash
-# Check MySQL logs
-make logs-db
-
-# Verify .env file
-cat .env
-```
-
-### Tests fail
-
-```bash
-# Clean and reinstall
+# Option 2: Clean up and restart
 make clean
-make install
+make start
+```
+
+### Docker Not Starting
+
+```bash
+# Check Docker daemon is running
+docker ps
+
+# If error, restart Docker Desktop and retry:
+make start
+```
+
+### Tests Are Failing
+
+```bash
+# Restart containers and run tests again
+make clean
+make start
 make test
 ```
 
-## 📚 Documentation
+### Can't Connect to API
 
-- [Express.js](https://expressjs.com/)
-- [Prisma ORM](https://www.prisma.io/docs/)
-- [Redis](https://redis.io/docs/)
-- [JWT](https://jwt.io/)
-- [Swagger/OpenAPI](https://swagger.io/)
+1. Check containers are running: `docker-compose ps`
+2. Check logs: `make logs`
+3. Verify health: `curl http://localhost:3003/health`
 
-## 🎓 Next Steps
+---
 
-1. **Database**: Add new models in `prisma/schema.prisma`
-2. **Routes**: Create new endpoints in `src/routes/`
-3. **Middleware**: Add custom middleware if needed
-4. **Tests**: Write tests for new endpoints
-5. **UI**: Update `public/index.html` to test new features
+## 📚 Available Make Commands
 
-## ❓ Need Help?
-
-See more details in `README.md` or run:
+See all available commands:
 
 ```bash
 make help
 ```
 
+**Key commands:**
+```bash
+make check-docker   # Verify Docker is installed
+make start          # Start everything
+make stop           # Stop all containers
+make test           # Run tests in container
+make logs           # View app logs
+make migrate        # Run database migrations
+make seed          # Seed database
+make db-reset       # Reset database completely
+make clean          # Clean up everything
+```
+
+---
+
+## 🎓 Next Steps
+
+1. **Explore API:** Visit http://localhost:3003/api
+2. **Test Endpoints:** Use Swagger UI to test all endpoints
+3. **Read Database:** 35+ days of demo data is ready to explore
+4. **Run Tests:** `make test` to see test coverage
+5. **Stop Service:** `make stop` when done
+
+---
+
+## 🆘 Need Help?
+
+- **API Docs:** http://localhost:3003/api
+- **Health Check:** http://localhost:3003/health
+- **View Logs:** `make logs`
+- **Read README:** See `README.md` for detailed documentation
+
+---
+
+## ✨ What's Included
+
+✅ NestJS backend with TypeScript
+✅ PostgreSQL database (pre-configured)
+✅ 35+ days of demo health data
+✅ JWT authentication (access + refresh tokens)
+✅ 6 feature modules: auth, body-records, meals, exercises, diary, columns
+✅ Swagger/OpenAPI documentation
+✅ 44 integration tests (84% pass rate)
+✅ Role-based access control (admin/user)
+✅ Docker containerization
+
 ---
 
 Happy coding! 🎉
+
+For more details, see `README.md` and `Makefile`.

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaService } from './prisma.service';
+import { PrismaModule } from './common/modules/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { BodyRecordsModule } from './body-records/body-records.module';
 import { MealsModule } from './meals/meals.module';
@@ -16,6 +16,7 @@ import { ColumnsModule } from './columns/columns.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    PrismaModule,
     AuthModule,
     BodyRecordsModule,
     MealsModule,
@@ -24,8 +25,8 @@ import { ColumnsModule } from './columns/columns.module';
     ColumnsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
-  exports: [PrismaService],
+  providers: [AppService],
+  exports: [PrismaModule],
 })
 export class AppModule {}
 

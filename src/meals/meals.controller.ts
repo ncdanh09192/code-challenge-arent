@@ -10,6 +10,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,8 +20,10 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { ParseDatePipe } from '../common/pipes/parse-date.pipe';
 import { MealsService } from './meals.service';
 import { CreateUserMealDto } from './dtos/create-user-meal.dto';
+import { UpdateUserMealDto } from './dtos/update-user-meal.dto';
 
 @ApiTags('meals')
 @Controller('meals')
@@ -72,11 +75,11 @@ export class MealsController {
   @ApiResponse({ status: 200, description: 'List of user meals' })
   async getUserMeals(
     @CurrentUser('id') userId: string,
-    @Query('skip') skip: number = 0,
-    @Query('take') take: number = 30,
+    @Query('skip', new ParseIntPipe({ optional: true })) skip?: number,
+    @Query('take', new ParseIntPipe({ optional: true })) take?: number,
     @Query('date') date?: string,
   ) {
-    return this.mealsService.getUserMeals(userId, skip, take, date);
+    return this.mealsService.getUserMeals(userId, skip || 0, take || 30, date);
   }
 
   @Get('user/date/:date')
@@ -86,9 +89,9 @@ export class MealsController {
   @ApiResponse({ status: 200, description: 'Meals for the specified date' })
   async getUserMealsByDate(
     @CurrentUser('id') userId: string,
-    @Param('date') date: string,
+    @Param('date', new ParseDatePipe()) date: Date,
   ) {
-    return this.mealsService.getUserMealsByDate(userId, date);
+    return this.mealsService.getUserMealsByDate(userId, date.toISOString().split('T')[0]);
   }
 
   @Get('user/stats/:date')
@@ -101,9 +104,9 @@ export class MealsController {
   })
   async getMealStats(
     @CurrentUser('id') userId: string,
-    @Param('date') date: string,
+    @Param('date', new ParseDatePipe()) date: Date,
   ) {
-    return this.mealsService.getMealStats(userId, date);
+    return this.mealsService.getMealStats(userId, date.toISOString().split('T')[0]);
   }
 
   @Get('user/:id')
@@ -126,7 +129,7 @@ export class MealsController {
   async updateUserMeal(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
-    @Body() updateDto: CreateUserMealDto,
+    @Body() updateDto: UpdateUserMealDto,
   ) {
     return this.mealsService.updateUserMeal(id, userId, updateDto);
   }

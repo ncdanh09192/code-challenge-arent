@@ -3,7 +3,16 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(yarn install:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(make start:*)",
+      "Bash(make test:*)"
     ],
     "deny": [],
     "ask": []

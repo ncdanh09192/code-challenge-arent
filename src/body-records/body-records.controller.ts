@@ -10,6 +10,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { BodyRecordsService } from './body-records.service';
 import { CreateBodyRecordDto } from './dtos/create-body-record.dto';
+import { UpdateBodyRecordDto } from './dtos/update-body-record.dto';
 
 @ApiTags('body-records')
 @Controller('body-records')
@@ -51,10 +53,10 @@ export class BodyRecordsController {
   })
   async findAll(
     @CurrentUser('id') userId: string,
-    @Query('skip') skip: number = 0,
-    @Query('take') take: number = 30,
+    @Query('skip', new ParseIntPipe({ optional: true })) skip?: number,
+    @Query('take', new ParseIntPipe({ optional: true })) take?: number,
   ) {
-    return this.bodyRecordsService.findAll(userId, skip, take);
+    return this.bodyRecordsService.findAll(userId, skip || 0, take || 30);
   }
 
   @Get('latest')
@@ -77,9 +79,9 @@ export class BodyRecordsController {
   })
   async getTrendData(
     @CurrentUser('id') userId: string,
-    @Query('days') days: number = 180,
+    @Query('days', new ParseIntPipe({ optional: true })) days?: number,
   ) {
-    return this.bodyRecordsService.getTrendData(userId, days);
+    return this.bodyRecordsService.getTrendData(userId, days || 180);
   }
 
   @Get('stats')
@@ -114,7 +116,7 @@ export class BodyRecordsController {
   async update(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
-    @Body() updateDto: CreateBodyRecordDto,
+    @Body() updateDto: UpdateBodyRecordDto,
   ) {
     return this.bodyRecordsService.update(id, userId, updateDto);
   }

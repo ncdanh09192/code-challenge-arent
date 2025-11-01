@@ -8,8 +8,28 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma.service';
+import { ROLES } from '../common/constants/roles';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+
+interface TokenPayload {
+  sub: string;
+  email: string;
+  username: string;
+  role: string;
+}
+
+export interface UserWithoutPassword {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 @Injectable()
 export class AuthService {
@@ -46,7 +66,7 @@ export class AuthService {
         password: hashedPassword,
         firstName,
         lastName,
-        role: 'user',
+        role: ROLES.USER,
       },
     });
 
@@ -120,13 +140,13 @@ export class AuthService {
     return tokens;
   }
 
-  private generateTokens(payload: any) {
+  private generateTokens(payload: TokenPayload) {
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>('JWT_EXPIRATION', '1d'),
+      expiresIn: this.configService.get('JWT_EXPIRATION', '1d'),
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<string>(
+      expiresIn: this.configService.get(
         'JWT_REFRESH_EXPIRATION',
         '7d',
       ),
@@ -135,8 +155,8 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private formatUser(user: any) {
+  private formatUser(user: any): UserWithoutPassword {
     const { password, ...rest } = user;
-    return rest;
+    return rest as UserWithoutPassword;
   }
 }

@@ -91,7 +91,7 @@ export class ColumnsService {
     }
 
     if (!column.published) {
-      throw new NotFoundException('Column not found');
+      throw new NotFoundException('Column is not published yet');
     }
 
     // Increment view count asynchronously

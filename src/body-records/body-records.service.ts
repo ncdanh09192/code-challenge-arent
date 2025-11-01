@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateBodyRecordDto } from './dtos/create-body-record.dto';
+import { UpdateBodyRecordDto } from './dtos/update-body-record.dto';
 
 @Injectable()
 export class BodyRecordsService {
@@ -39,7 +40,7 @@ export class BodyRecordsService {
     return record;
   }
 
-  async update(id: string, userId: string, updateDto: CreateBodyRecordDto) {
+  async update(id: string, userId: string, updateDto: UpdateBodyRecordDto) {
     const record = await this.findOne(id, userId);
 
     return this.prisma.bodyRecord.update({
@@ -104,7 +105,7 @@ export class BodyRecordsService {
       },
       change: {
         weight: latest.weight - oldest.weight,
-        bodyFatPercentage: latest.bodyFatPercentage - oldest.bodyFatPercentage,
+        bodyFatPercentage: (latest.bodyFatPercentage ?? 0) - (oldest.bodyFatPercentage ?? 0),
       },
       records: records.length,
     };

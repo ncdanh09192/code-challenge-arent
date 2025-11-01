@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { ROLES } from '../common/constants/roles';
 import { ColumnsService } from './columns.service';
 import { CreateColumnDto } from './dtos/create-column.dto';
 import { UpdateColumnDto } from './dtos/update-column.dto';
@@ -62,6 +63,21 @@ export class ColumnsController {
     return this.columnsService.getColumnsByCategory(categoryId);
   }
 
+  @Get('admin/my-columns')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(ROLES.ADMIN)
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get all columns created by current admin' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of admin columns',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  async getAdminColumns(@CurrentUser('id') adminId: string) {
+    return this.columnsService.getAdminColumns(adminId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get column details by ID (increments view count)' })
   @ApiResponse({
@@ -77,7 +93,7 @@ export class ColumnsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(ROLES.ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Create new column (admin only)' })
@@ -97,7 +113,7 @@ export class ColumnsController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(ROLES.ADMIN)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Update column (admin only)' })
   @ApiResponse({
@@ -118,7 +134,7 @@ export class ColumnsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(ROLES.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Delete column (admin only)' })
@@ -134,20 +150,5 @@ export class ColumnsController {
     @CurrentUser('id') adminId: string,
   ) {
     return this.columnsService.deleteColumn(id, adminId);
-  }
-
-  @Get('admin/my-columns')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @ApiBearerAuth('JWT')
-  @ApiOperation({ summary: 'Get all columns created by current admin' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of admin columns',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
-  async getAdminColumns(@CurrentUser('id') adminId: string) {
-    return this.columnsService.getAdminColumns(adminId);
   }
 }

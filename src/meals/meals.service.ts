@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { CreateUserMealDto } from './dtos/create-user-meal.dto';
+import { UpdateUserMealDto } from './dtos/update-user-meal.dto';
 
 @Injectable()
 export class MealsService {
@@ -73,7 +75,7 @@ export class MealsService {
   }
 
   async getUserMeals(userId: string, skip = 0, take = 30, date?: string) {
-    const where = { userId } as any;
+    const where: Prisma.UserMealWhereInput = { userId };
 
     if (date) {
       const dateObj = new Date(date);
@@ -126,7 +128,7 @@ export class MealsService {
     return meal;
   }
 
-  async updateUserMeal(id: string, userId: string, updateDto: CreateUserMealDto) {
+  async updateUserMeal(id: string, userId: string, updateDto: UpdateUserMealDto) {
     const meal = await this.getUserMeal(id, userId);
 
     // Validate preset if provided

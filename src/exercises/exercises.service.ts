@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { CreateUserExerciseDto } from './dtos/create-user-exercise.dto';
+import { UpdateUserExerciseDto } from './dtos/update-user-exercise.dto';
 
 @Injectable()
 export class ExercisesService {
@@ -63,7 +65,7 @@ export class ExercisesService {
   }
 
   async getUserExercises(userId: string, skip = 0, take = 30, date?: string) {
-    const where = { userId } as any;
+    const where: Prisma.UserExerciseWhereInput = { userId };
 
     if (date) {
       const dateObj = new Date(date);
@@ -119,7 +121,7 @@ export class ExercisesService {
   async updateUserExercise(
     id: string,
     userId: string,
-    updateDto: CreateUserExerciseDto,
+    updateDto: UpdateUserExerciseDto,
   ) {
     const exercise = await this.getUserExercise(id, userId);
 

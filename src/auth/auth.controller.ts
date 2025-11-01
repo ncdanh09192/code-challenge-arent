@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { Request as ExpressRequest } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiTags,
@@ -15,9 +16,16 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
+import { AuthService, UserWithoutPassword } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
+
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  username: string;
+  role: string;
+}
 
 @ApiTags('auth')
 @Controller('auth')
@@ -91,8 +99,9 @@ export class AuthController {
     status: 200,
     description: 'Token refreshed successfully',
   })
-  async refreshToken(@Request() req) {
-    return this.authService.refreshToken(req.user.id);
+  async refreshToken(@Request() req: ExpressRequest) {
+    const user = req.user as AuthenticatedUser;
+    return this.authService.refreshToken(user.id);
   }
 
   @Get('me')
@@ -103,7 +112,7 @@ export class AuthController {
     status: 200,
     description: 'Current user info',
   })
-  async getCurrentUser(@Request() req) {
+  async getCurrentUser(@Request() req: ExpressRequest) {
     return req.user;
   }
 }

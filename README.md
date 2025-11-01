@@ -16,64 +16,80 @@ A comprehensive health tracking and wellness management API built with NestJS, P
 
 ## 📋 Prerequisites
 
-- **Node.js** >= 20.0.0
-- **npm** >= 9.0.0
-- **PostgreSQL** (running via Docker or locally)
-- **Docker & Docker Compose** (optional, for PostgreSQL)
+- **Docker & Docker Compose** (required - all dependencies run in containers)
+  - Download: https://www.docker.com/products/docker-desktop
+  - Verify installation: `make check-docker`
+- **Make** (for running commands)
+  - On macOS/Linux: usually pre-installed
+  - On Windows: install via WSL or Git Bash
 
 ## ⚡ Quick Start
 
-### 1. Clone and Install
+### 1. Verify Docker Installation
 
 ```bash
-git clone <repository-url>
-cd code-challenge-arent
-npm install
+# Check that Docker is installed and ready
+make check-docker
 ```
 
-### 2. Setup Environment
+If Docker is not installed, download it from [docker.com](https://www.docker.com/products/docker-desktop)
+
+### 2. Start the Application
 
 ```bash
-cp .env.example .env
+# This will:
+# - Start PostgreSQL and NestJS containers
+# - Install all dependencies
+# - Run database migrations
+# - Start the development server
+make start
 ```
 
-### 3. Start PostgreSQL
+The application will be available at: **http://localhost:3003/api-docs*
+
+### 3. Login with Demo Credentials
+
+```
+Email:    demo@example.com
+Password: demo123456
+```
+
+### 4. Stop When Done
 
 ```bash
-# Using Docker Compose
-docker-compose up -d
-
-# Or use local PostgreSQL installation
-# Make sure it's running on port 5432
+make stop
 ```
 
-### 4. Setup Database
+## 📦 Available Make Commands
+
+All commands run inside Docker containers:
 
 ```bash
-# Run migrations
-npm run prisma:migrate
+# Docker Setup
+make check-docker          # Verify Docker is installed (run this first!)
 
-# Seed demo data (35+ days)
-npm run prisma:seed
+# Core Operations
+make start                 # Start all services + install + migrate
+make stop                  # Stop all containers
+make test                  # Run integration tests inside container
+make logs                  # View application logs
+
+# Database Operations
+make migrate               # Run Prisma migrations
+make seed                  # Seed database with 35+ days of demo data
+make db-reset              # Reset database completely
+
+# Development
+make dev                   # Start dev server (if containers running)
+make test-watch            # Run tests in watch mode
+make build                 # Build Docker image
+
+# Cleanup
+make clean                 # Remove containers, images, volumes
+make info                  # Show project information
 ```
-
-### 5. Start Application
-
-```bash
-# Development mode (with hot reload)
-npm run start:dev
-
-# Production mode
-npm run build
-npm start
-```
-
-The API will be available at `http://localhost:3000`
-Swagger docs at `http://localhost:3000/api`
 
 ## 🔐 Demo Credentials
-
-After seeding, use these credentials:
 
 **Regular User**
 ```
@@ -85,33 +101,6 @@ Password: demo123456
 ```
 Email: admin@example.com
 Password: demo123456
-```
-
-## 📚 Available Commands
-
-```bash
-# Development
-npm run start:dev          # Start with hot reload
-npm run start:debug        # Start with debugging
-
-# Building & Production
-npm run build              # Build for production
-npm start                  # Start production server
-
-# Database
-npm run prisma:migrate     # Create/run migrations
-npm run prisma:seed        # Populate database with demo data
-npm run prisma:studio      # Open Prisma Studio UI
-npm run db:reset           # Reset database
-
-# Testing
-npm test                   # Run all tests
-npm run test:watch         # Run tests in watch mode
-npm run test:cov           # Run tests with coverage
-
-# Code Quality
-npm run lint               # Run ESLint
-npm run format             # Format code with Prettier
 ```
 
 ## 📡 API Endpoints Overview
@@ -337,11 +326,14 @@ Run with: `npm run prisma:seed`
 
 ### Port Already in Use
 ```bash
-# Check what's using port 3000
-lsof -i :3000
+# Check what's using port 3003
+lsof -i :3003
 
-# Or use a different port via environment variable
-PORT=3001 npm run start:dev
+# Kill the process using that port (get PID from above)
+kill -9 <PID>
+
+# Or stop Docker containers
+make stop
 ```
 
 ### Database Connection Failed

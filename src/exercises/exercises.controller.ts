@@ -10,6 +10,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,8 +20,10 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { ParseDatePipe } from '../common/pipes/parse-date.pipe';
 import { ExercisesService } from './exercises.service';
 import { CreateUserExerciseDto } from './dtos/create-user-exercise.dto';
+import { UpdateUserExerciseDto } from './dtos/update-user-exercise.dto';
 
 @ApiTags('exercises')
 @Controller('exercises')
@@ -65,11 +68,11 @@ export class ExercisesController {
   @ApiResponse({ status: 200, description: 'List of user exercises' })
   async getUserExercises(
     @CurrentUser('id') userId: string,
-    @Query('skip') skip: number = 0,
-    @Query('take') take: number = 30,
+    @Query('skip', new ParseIntPipe({ optional: true })) skip?: number,
+    @Query('take', new ParseIntPipe({ optional: true })) take?: number,
     @Query('date') date?: string,
   ) {
-    return this.exercisesService.getUserExercises(userId, skip, take, date);
+    return this.exercisesService.getUserExercises(userId, skip || 0, take || 30, date);
   }
 
   @Get('user/date/:date')
@@ -79,9 +82,9 @@ export class ExercisesController {
   @ApiResponse({ status: 200, description: 'Exercises for the specified date' })
   async getUserExercisesByDate(
     @CurrentUser('id') userId: string,
-    @Param('date') date: string,
+    @Param('date', new ParseDatePipe()) date: Date,
   ) {
-    return this.exercisesService.getUserExercisesByDate(userId, date);
+    return this.exercisesService.getUserExercisesByDate(userId, date.toISOString().split('T')[0]);
   }
 
   @Get('user/stats/:date')
@@ -94,9 +97,9 @@ export class ExercisesController {
   })
   async getExerciseStats(
     @CurrentUser('id') userId: string,
-    @Param('date') date: string,
+    @Param('date', new ParseDatePipe()) date: Date,
   ) {
-    return this.exercisesService.getExerciseStats(userId, date);
+    return this.exercisesService.getExerciseStats(userId, date.toISOString().split('T')[0]);
   }
 
   @Get('user/:id')
@@ -119,7 +122,7 @@ export class ExercisesController {
   async updateUserExercise(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
-    @Body() updateDto: CreateUserExerciseDto,
+    @Body() updateDto: UpdateUserExerciseDto,
   ) {
     return this.exercisesService.updateUserExercise(id, userId, updateDto);
   }
